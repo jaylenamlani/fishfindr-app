@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FishFindr</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #0d1a2e; /* Deep Navy Blue */
+        }
+        .font-brand {
+            font-family: 'Exo 2', sans-serif;
+        }
+        .rating-best { background-color: #22c55e; color: #ffffff; }
+        .rating-good { background-color: #f59e0b; color: #ffffff; }
+        .rating-avoid { background-color: #ef4444; color: #ffffff; }
+        #image-upload-area {
+            border: 2px dashed #3a5b8a;
+            transition: all 0.3s ease;
+        }
+        #image-upload-area.dragover {
+            border-color: #00aaff;
+            background-color: #1a2c47;
+        }
+        .fish-list-item {
+            transition: background-color 0.2s ease-in-out;
+        }
+        .fish-list-item:hover {
+            background-color: #1a2c47;
+        }
+        .progress-bar-container {
+            background-color: #1a2c47;
+        }
+        .progress-bar {
+            background: linear-gradient(to right, #00aaff, #0077cc);
+            transition: width 0.5s ease-in-out;
+        }
+        .main-button {
+            background: linear-gradient(to right, #00aaff, #0077cc);
+            transition: transform 0.2s ease;
+        }
+        .main-button:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="text-gray-200">
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <div class="max-w-2xl mx-auto">
+            <header class="text-center mb-10">
+                <h1 class="font-brand text-5xl font-bold text-white tracking-wider">FISHFINDR</h1>
+                <p class="text-blue-300 mt-1">The all-in-one seafood identification and sustainable recommendation system</p>
+            </header>
+
+            <!-- Input Methods -->
+            <div class="bg-[#1a2c47] p-6 rounded-xl shadow-lg mb-4">
+                <label for="fish-input" class="block text-sm font-medium text-blue-300 mb-2">Enter a fish name</label>
+                <input type="text" id="fish-input" placeholder="e.g., Salmon, Tuna, Cod" class="w-full px-4 py-3 bg-[#0d1a2e] border border-[#3a5b8a] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00aaff] text-white">
+            </div>
+
+            <div class="text-center my-4">
+                <span class="text-gray-400 font-semibold">OR</span>
+            </div>
+
+            <div class="bg-[#1a2c47] p-6 rounded-xl shadow-lg mb-8">
+                 <label class="block text-sm font-medium text-blue-300 mb-2">Upload a picture of a fish</label>
+                <div id="image-upload-area" class="relative rounded-lg p-8 text-center cursor-pointer">
+                    <input type="file" id="image-upload-input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/*">
+                    <div id="upload-prompt">
+                        <svg class="mx-auto h-12 w-12 text-gray-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg>
+                        <p class="mt-2 text-sm text-gray-400"><span class="font-semibold text-[#00aaff]">Click to upload</span> or drag and drop</p>
+                    </div>
+                    <div id="image-preview-container" class="hidden relative">
+                        <img id="image-preview" src="" alt="Image preview" class="max-h-48 mx-auto rounded-lg">
+                        <button id="clear-image-button" class="absolute top-0 right-0 -mt-2 -mr-2 bg-red-500 text-white rounded-full p-1.5 leading-none hover:bg-red-600 focus:outline-none"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center">
+                 <button id="analyze-button" class="main-button w-full sm:w-auto text-white font-bold py-3 px-8 rounded-lg shadow-lg flex items-center justify-center mx-auto">
+                    <svg id="search-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    <svg id="loading-spinner" class="animate-spin h-5 w-5 mr-2 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    <span id="button-text">Analyze</span>
+                </button>
+            </div>
+
+            <!-- Results -->
+            <div id="results-container" class="mt-10"></div>
+            <div id="error-message" class="hidden bg-red-900/50 border border-red-500 text-red-300 px-4 py-3 rounded-lg relative mt-8" role="alert">
+                <strong class="font-bold">Error:</strong>
+                <span id="error-text" class="block sm:inline">Could not identify the fish.</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA: Full, Processed Monterey Bay Aquarium Dataset (Refined Grouping) ---
+        const fishDatabase = [
+            { name: "Abalone", rating: 1, taste: "Briny", texture: "Chewy" },
+            { name: "Amberjack", rating: 3, taste: "Rich", texture: "Firm" },
+            { name: "Anchovy", rating: 2, taste: "Rich", texture: "Oily" },
+            { name: "Arctic Char", rating: 1, taste: "Mild", texture: "Flaky" },
+            { name: "Barramundi", rating: 1, taste: "Mild", texture: "Firm" },
+            { name: "Basa", rating: 3, taste: "Mild", texture: "Delicate" },
+            { name: "Black Sea Bass", rating: 1, taste: "Mild", texture: "Firm" },
+            { name: "Striped Bass", rating: 1, taste: "Mild", texture: "Firm" },
+            { name: "White Bass", rating: 1, taste: "Mild", texture: "Firm" },
+            { name: "Bream", rating: 2, taste: "Mild", texture: "Flaky" },
+            { name: "Brotula", rating: 2, taste: "Mild", texture: "Soft" },
+            { name: "Carp", rating: 2, taste: "Mild", texture: "Firm" },
+            { name: "Catfish", rating: 1, taste: "Mild", texture: "Firm" },
+            { name: "Caviar", rating: 3, taste: "Rich", texture: "Delicate" },
+            { name: "Clam", rating: 1, taste: "Briny", texture: "Chewy" },
+            { name: "Cockle", rating: 1, taste: "Briny", texture: "Chewy" },
+            { name: "Atlantic Cod", rating: 3, taste: "Mild", texture: "Flaky" },
+            { name: "Pacific Cod", rating: 1, taste: "Mild", texture: "Flaky" },
+            { name: "Conch", rating: 3, taste: "Sweet", texture: "Chewy" },
+            { name: "Blue Crab", rating: 2, taste: "Sweet", texture: "Tender" },
+            { name: "Dungeness Crab", rating: 1, taste: "Sweet", texture: "Tender" },
+            { name: "King Crab", rating: 3, taste: "Sweet", texture: "Tender" },
+            { name: "Snow Crab", rating: 2, taste: "Sweet", texture: "Tender" },
+            { name: "Stone Crab", rating: 1, taste: "Sweet", texture: "Tender" },
+            { name: "Crawfish", rating: 1, taste: "Sweet", texture: "Firm" },
+            { name: "Cusk", rating: 1, taste: "Mild", texture: "Firm" },
+            { name: "Cuttlefish", rating: 2, taste: "Mild", texture: "Firm" },
+            { name: "Dab", rating: 2, taste: "Mild", texture: "Delicate" },
+            { name: "Dogfish", rating: 2, taste: "Mild", texture: "Firm" },
+            { name: "Dolly Varden", rating: 1, taste: "Mild", texture: "Flaky" },
+            { name: "Dolphin Fish", rating: 1, taste: "Mild", texture: "Firm" },
+            { name: "Drum", rating: 2, taste: "Mild", texture: "Firm" },
+            { name: "Eel", rating: 3, taste: "Rich", texture: "Firm" },
+            { name: "Flounder", rating: 2, taste: "Mild", texture: "Delicate" },
+            { name: "Geoduck", rating: 1, taste: "Briny", texture: "Crunchy" },
+            { name: "Goby", rating: 2, taste: "Mild", texture: "Soft" },
+            { name: "Grouper", rating: 3, taste: "Mild", texture: "Firm" },
+            { name: "Haddock", rating: 1, taste: "Mild", texture: "Flaky" },
+            { name: "Hake", rating: 2, taste: "Mild", texture: "Soft" },
+            { name: "Atlantic Halibut", rating: 3, taste: "Mild", texture: "Firm/Flaky" },
+            { name: "California Halibut", rating: 1, taste: "Mild", texture: "Firm/Flaky" },
+            { name: "Pacific Halibut", rating: 2, taste: "Mild", texture: "Firm/Flaky" },
+            { name: "Herring", rating: 2, taste: "Rich", texture: "Oily" },
+            { name: "Hoki", rating: 2, taste: "Mild", texture: "Delicate" },
+            { name: "Jellyfish", rating: 2, taste: "Neutral", texture: "Crunchy" },
+            { name: "Jewfish", rating: 3, taste: "Mild", texture: "Firm" },
+            { name: "Kingklip", rating: 3, taste: "Mild", texture: "Firm" },
+            { name: "Lingcod", rating: 1, taste: "Mild", texture: "Firm" },
+            { name: "American Lobster", rating: 2, taste: "Sweet", texture: "Firm" },
+            { name: "Spiny Lobster", rating: 3, taste: "Sweet", texture: "Firm" },
+            { name: "Atlantic Mackerel", rating: 1, taste: "Rich", texture: "Oily" },
+            { name: "King Mackerel", rating: 3, taste: "Rich", texture: "Oily" },
+            { name: "Spanish Mackerel", rating: 1, taste: "Rich", texture: "Oily" },
+            { name: "Mahi Mahi", rating: 1, taste: "Mild", texture: "Firm" },
+            { name: "Monkfish", rating: 2, taste: "Mild", texture: "Firm" },
+            { name: "Mullet", rating: 2, taste: "Rich", texture: "Firm" },
+            { name: "Mussel", rating: 1, taste: "Briny", texture: "Tender" },
+            { name: "Octopus", rating: 2, taste: "Mild", texture: "Chewy" },
+            { name: "Opah", rating: 2, taste: "Rich", texture: "Firm" },
+            { name: "Orange Roughy", rating: 3, taste: "Mild", texture: "Delicate" },
+            { name: "Oyster", rating: 1, taste: "Briny", texture: "Soft" },
+            { name: "Patagonian Toothfish", rating: 3, taste: "Rich", texture: "Oily/Velvety" },
+            { name: "Perch", rating: 2, taste: "Mild", texture: "Flaky" },
+            { name: "Plaice", rating: 2, taste: "Mild", texture: "Delicate" },
+            { name: "Pollock", rating: 1, taste: "Mild", texture: "Flaky" },
+            { name: "Pompano", rating: 2, taste: "Rich", texture: "Firm" },
+            { name: "Sablefish / Black Cod", rating: 1, taste: "Rich", texture: "Oily/Velvety" },
+            { name: "Atlantic Salmon", rating: 3, taste: "Rich", texture: "Oily/Flaky" },
+            { name: "Chinook Salmon", rating: 2, taste: "Rich", texture: "Oily/Flaky" },
+            { name: "Chum Salmon", rating: 1, taste: "Mild", texture: "Drier/Flaky" },
+            { name: "Coho Salmon", rating: 1, taste: "Mild", texture: "Oily/Flaky" },
+            { name: "Pink Salmon", rating: 1, taste: "Mild", texture: "Delicate" },
+            { name: "Sockeye Salmon", rating: 1, taste: "Rich", texture: "Firm/Oily" },
+            { name: "Sardine", rating: 1, taste: "Rich", texture: "Oily" },
+            { name: "Scallop", rating: 2, taste: "Sweet", texture: "Tender" },
+            { name: "Scampi", rating: 2, taste: "Sweet", texture: "Firm" },
+            { name: "Sea Urchin", rating: 2, taste: "Rich", texture: "Creamy" },
+            { name: "Seatrout", rating: 2, taste: "Mild", texture: "Flaky" },
+            { name: "Shad", rating: 2, taste: "Rich", texture: "Oily" },
+            { name: "Shark", rating: 3, taste: "Mild", texture: "Firm/Steak-like" },
+            { name: "Shrimp", rating: 2, taste: "Mild", texture: "Firm" },
+            { name: "Skate", rating: 3, taste: "Mild", texture: "Stringy" },
+            { name: "Smelt", rating: 2, taste: "Rich", texture: "Delicate" },
+            { name: "Red Snapper", rating: 3, taste: "Mild", texture: "Firm" },
+            { name: "Vermilion Snapper", rating: 1, taste: "Mild", texture: "Firm" },
+            { name: "Yellowtail Snapper", rating: 1, taste: "Mild", texture: "Firm" },
+            { name: "Sole", rating: 2, taste: "Mild", texture: "Delicate" },
+            { name: "Squid", rating: 1, taste: "Mild", texture: "Firm" },
+            { name: "Sturgeon", rating: 3, taste: "Rich", texture: "Firm" },
+            { name: "Surimi", rating: 2, taste: "Mild", texture: "Spongy" },
+            { name: "Swai", rating: 3, taste: "Mild", texture: "Delicate" },
+            { name: "Swordfish", rating: 2, taste: "Rich", texture: "Firm/Steak-like" },
+            { name: "Tilapia", rating: 2, taste: "Mild", texture: "Lean/Flaky" },
+            { name: "Tilefish", rating: 3, taste: "Mild", texture: "Firm" },
+            { name: "Trout", rating: 1, taste: "Mild", texture: "Flaky" },
+            { name: "Albacore Tuna", rating: 1, taste: "Mild", texture: "Firm" },
+            { name: "Bigeye Tuna", rating: 3, taste: "Rich", texture: "Firm" },
+            { name: "Bluefin Tuna", rating: 3, taste: "Rich", texture: "Firm/Steak-like" },
+            { name: "Skipjack Tuna", rating: 1, taste: "Rich", texture: "Firm" },
+            { name: "Yellowfin Tuna", rating: 3, taste: "Mild", texture: "Firm" },
+            { name: "Turbot", rating: 2, taste: "Mild", texture: "Firm" },
+            { name: "Wahoo", rating: 2, taste: "Mild", texture: "Firm" },
+            { name: "Whitefish", rating: 1, taste: "Mild", texture: "Flaky" },
+            { name: "Whiting", rating: 2, taste: "Mild", texture: "Delicate" },
+            { name: "Yellowtail", rating: 3, taste: "Rich", texture: "Firm" },
+        ];
+        const ratingMap = { 1: { text: "Best Choice", class: "rating-best" }, 2: { text: "Good Alternative", class: "rating-good" }, 3: { text: "Avoid", class: "rating-avoid" } };
+
+        const analyzeButton = document.getElementById('analyze-button');
+        const searchIcon = document.getElementById('search-icon');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const buttonText = document.getElementById('button-text');
+        const fishInput = document.getElementById('fish-input');
+        const resultsContainer = document.getElementById('results-container');
+        const errorMessage = document.getElementById('error-message');
+        const errorText = document.getElementById('error-text');
+        const uploadArea = document.getElementById('image-upload-area');
+        const uploadInput = document.getElementById('image-upload-input');
+        const uploadPrompt = document.getElementById('upload-prompt');
+        const imagePreviewContainer = document.getElementById('image-preview-container');
+        const imagePreview = document.getElementById('image-preview');
+        const clearImageButton = document.getElementById('clear-image-button');
+        let uploadedImageBase64 = null;
+
+        // --- Image Upload Handling ---
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => uploadArea.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); }));
+        ['dragenter', 'dragover'].forEach(eventName => uploadArea.addEventListener(eventName, () => uploadArea.classList.add('dragover')));
+        ['dragleave', 'drop'].forEach(eventName => uploadArea.addEventListener(eventName, () => uploadArea.classList.remove('dragover')));
+        uploadArea.addEventListener('drop', e => handleFiles(e.dataTransfer.files));
+        uploadInput.addEventListener('change', e => handleFiles(e.target.files));
+
+        function handleFiles(files) {
+            if (files.length === 0) return;
+            const file = files[0];
+            if (!file.type.startsWith('image/')) { showError("Please upload an image file."); return; }
+            const reader = new FileReader();
+            reader.onload = e => {
+                imagePreview.src = e.target.result;
+                uploadedImageBase64 = e.target.result.split(',')[1];
+                uploadPrompt.classList.add('hidden');
+                imagePreviewContainer.classList.remove('hidden');
+                fishInput.value = '';
+                fishInput.disabled = true;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        clearImageButton.addEventListener('click', e => {
+            e.stopPropagation();
+            uploadedImageBase64 = null;
+            uploadInput.value = '';
+            uploadPrompt.classList.remove('hidden');
+            imagePreviewContainer.classList.add('hidden');
+            fishInput.disabled = false;
+        });
+
+        // --- Gemini API Calls ---
+        async function callGemini(prompt, data = null) {
+            const apiKey = ""; // Injected by environment
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            
+            let parts = [{ text: prompt }];
+            if (data) {
+                parts.push({ inlineData: { mimeType: "image/jpeg", data: data } });
+            }
+
+            const payload = { contents: [{ role: "user", parts: parts }] };
+            const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (!response.ok) throw new Error(`API call failed with status: ${response.status}`);
+            const result = await response.json();
+            if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
+                return result.candidates[0].content.parts[0].text.trim();
+            }
+            throw new Error("API response was empty or malformed.");
+        }
+
+        async function getFishFromImage(base64ImageData) {
+            setLoadingState(true, "✨ Identifying fish...");
+            const fishNames = fishDatabase.map(f => f.name).join('", "');
+            const prompt = `You are a fish identification expert. Analyze the image and identify the fish from the provided list. Respond with a JSON object with two keys: "fishName" (your best guess from the list) and "confidence" (a number from 0.85 to 0.99 for how sure you are). The list of possible fish is: ["${fishNames}"]`;
+            
+            const jsonString = await callGemini(prompt, base64ImageData);
+            try {
+                const cleanedJsonString = jsonString.replace(/^```json\n|```$/g, '');
+                return JSON.parse(cleanedJsonString);
+            } catch (e) {
+                console.error("Failed to parse JSON from Gemini:", jsonString);
+                throw new Error("Could not parse the AI's identification response.");
+            }
+        }
+
+        // --- Main Application Logic ---
+        analyzeButton.addEventListener('click', async () => {
+            setLoadingState(true, "Analyzing...");
+            try {
+                let analysisResult;
+                if (uploadedImageBase64) {
+                    analysisResult = await getFishFromImage(uploadedImageBase64);
+                } else {
+                    const fishNameToAnalyze = fishInput.value.trim();
+                    if (!fishNameToAnalyze) {
+                        alert("Please enter a fish name.");
+                        setLoadingState(false);
+                        return;
+                    }
+                    analysisResult = { fishName: fishNameToAnalyze, confidence: null };
+                }
+
+                analyzeAndDisplay(analysisResult.fishName, analysisResult.confidence);
+
+            } catch (err) {
+                console.error(err);
+                showError(err.message);
+            } finally {
+                setLoadingState(false);
+            }
+        });
+
+        function analyzeAndDisplay(fishName, confidence) {
+            const lowerFishName = fishName.toLowerCase();
+            const foundFishes = fishDatabase.filter(f => f.name.toLowerCase().includes(lowerFishName));
+
+            if (foundFishes.length === 0) {
+                showError(`'${fishName}' was not found in our database.`);
+                return;
+            }
+            
+            if (foundFishes.length === 1) {
+                displaySingleResult(foundFishes[0], confidence);
+            } else {
+                displayMultipleResults(foundFishes);
+            }
+        }
+        
+        function displaySingleResult(selectedFish, confidence) {
+            const recommendations = fishDatabase.filter(fish =>
+                fish.name !== selectedFish.name &&
+                fish.taste === selectedFish.taste &&
+                fish.texture === selectedFish.texture &&
+                fish.rating < selectedFish.rating
+            ).sort((a, b) => a.rating - b.rating);
+
+            let recommendationsHTML = recommendations.map(rec => `
+                <div class="bg-[#1a2c47] p-4 rounded-lg shadow-md flex justify-between items-center">
+                    <div>
+                        <p class="font-bold text-lg text-white">${rec.name}</p>
+                        <p class="text-sm text-blue-300">${rec.taste}, ${rec.texture}</p>
+                    </div>
+                    <span class="font-semibold px-3 py-1 rounded-full text-sm ${ratingMap[rec.rating].class}">${ratingMap[rec.rating].text}</span>
+                </div>
+            `).join('');
+
+            let noRecsText = '';
+            if (recommendations.length === 0) {
+                if (selectedFish.rating === 1) {
+                    noRecsText = "This is already a 'Best Choice'. No better alternatives needed!";
+                } else {
+                    noRecsText = "No better sustainable options with this exact taste profile were found.";
+                }
+            }
+            
+            let confidenceHTML = '';
+            if (confidence) {
+                const confidencePercent = Math.round(confidence * 100);
+                confidenceHTML = `
+                    <div class="mt-6">
+                        <p class="text-sm font-medium text-blue-300 mb-1">AI Confidence Score</p>
+                        <div class="flex items-center gap-x-3">
+                            <div class="w-full progress-bar-container rounded-full h-2.5">
+                                <div class="progress-bar h-2.5 rounded-full" style="width: ${confidencePercent}%"></div>
+                            </div>
+                            <span class="font-semibold text-white">${confidencePercent}%</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            resultsContainer.innerHTML = `
+                <div class="bg-[#1a2c47] p-6 rounded-xl shadow-lg mb-6">
+                    <h2 class="text-3xl font-bold text-white mb-4">${selectedFish.name}</h2>
+                    ${confidenceHTML}
+                    <div class="mt-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                            <p class="text-sm text-blue-300">Sustainability Rating</p>
+                            <p class="text-lg font-semibold px-4 py-1 rounded-full text-center mt-1 ${ratingMap[selectedFish.rating].class}">${ratingMap[selectedFish.rating].text}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-blue-300">Taste Profile</p>
+                            <p class="text-lg font-semibold mt-1 text-white">${selectedFish.taste}, ${selectedFish.texture}</p>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-bold text-white mb-4">Sustainable Alternatives</h3>
+                    <div class="space-y-4">${recommendationsHTML}</div>
+                    ${noRecsText ? `<p class="text-center text-gray-400 py-6 bg-[#1a2c47] rounded-xl shadow-lg mt-4">${noRecsText}</p>` : ''}
+                </div>
+            `;
+            resultsContainer.classList.remove('hidden');
+        }
+
+        function displayMultipleResults(foundFishes) {
+             let fishListHTML = foundFishes.map(fish => `
+                <div class="fish-list-item bg-[#1a2c47] p-4 rounded-lg shadow-md flex justify-between items-center cursor-pointer" data-fish-name="${fish.name}">
+                    <div>
+                        <p class="font-bold text-lg text-white">${fish.name}</p>
+                    </div>
+                    <span class="font-semibold px-3 py-1 rounded-full text-sm ${ratingMap[fish.rating].class}">${ratingMap[fish.rating].text}</span>
+                </div>
+            `).join('');
+
+            resultsContainer.innerHTML = `
+                <div>
+                    <h3 class="text-2xl font-bold text-white mb-4">Multiple fish match your search. Please select one:</h3>
+                    <div class="space-y-4">${fishListHTML}</div>
+                </div>
+            `;
+            resultsContainer.classList.remove('hidden');
+
+            document.querySelectorAll('.fish-list-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const fishName = item.getAttribute('data-fish-name');
+                    analyzeAndDisplay(fishName, null); // Confidence is null for text-based drilldown
+                });
+            });
+        }
+
+        function setLoadingState(isLoading, text = "Analyze") {
+            analyzeButton.disabled = isLoading;
+            searchIcon.classList.toggle('hidden', isLoading);
+            loadingSpinner.classList.toggle('hidden', !isLoading);
+            buttonText.textContent = text;
+            if (!isLoading) buttonText.textContent = "Analyze";
+            
+            if(isLoading) {
+                resultsContainer.innerHTML = '';
+                errorMessage.classList.add('hidden');
+            }
+        }
+
+        function showError(message) {
+            errorText.textContent = message;
+            errorMessage.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
